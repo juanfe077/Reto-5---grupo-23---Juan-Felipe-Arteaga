@@ -1,0 +1,636 @@
+
+package controller;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import model.DAO.Modelo;
+import model.vo.Respuesta1;
+import view.Vista;
+import java.sql.*;
+import java.util.List;
+import javax.swing.JOptionPane;
+import model.vo.Respuesta2;
+import model.vo.Respuesta3;
+
+public class Controlador implements ActionListener{
+    private Vista view;
+    private Modelo model;
+    
+    public Controlador(Vista view, Modelo model){
+        this.view = view;
+        this.model = model;
+        this.view.btnInforme1.addActionListener(this);
+        this.view.btnInforme2.addActionListener(this);
+        this.view.btnInforme3.addActionListener(this);
+    }
+    
+    public void iniciar(){
+        view.setTitle("Reto 5 UTP - Mision TIC");
+        
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == view.btnInforme1){
+            String[] titulo =new String[] {"ID_Lider","Nombre","Primer_Apellido","Ciudad_Residencia"};
+            view.mostrar.setColumnIdentifiers(titulo);
+            view.mostrar.setNumRows(0);
+            
+            List<Respuesta1> Listado;
+            try {
+                Listado = model.con1();
+                Listado.forEach(consulta -> {
+                    view.mostrar.addRow(new Object[] {
+                        consulta.getId_lider(),
+                        consulta.getNombre(),
+                        consulta.getPrimer_apellido(),
+                        consulta.getCiudad_residencia()  
+                    });
+                });
+            } 
+            catch (SQLException ex) {
+                JOptionPane.showMessageDialog(null, "Error en la consulta" + ex);
+            }
+
+        }
+        
+        
+        if (e.getSource() == view.btnInforme2){
+            String[] titulo =new String[] {"ID_Proyecto","Constructora","Numero_Habitaciones","Ciudad"};
+            view.mostrar.setColumnIdentifiers(titulo);
+            view.mostrar.setNumRows(0);
+            
+            List<Respuesta2> Listado;
+            try {
+                Listado = model.con2();
+                Listado.forEach(consulta -> {
+                    view.mostrar.addRow(new Object[] {
+                        consulta.getId_proyecto(),
+                        consulta.getConstructora(),
+                        consulta.getNumero_habitaciones(),
+                        consulta.getCiudad()  
+                    });
+                });
+            } 
+            catch (SQLException ex) {
+                JOptionPane.showMessageDialog(null, "Error en la consulta" + ex);
+            }
+
+        }
+        
+        if (e.getSource() == view.btnInforme3){
+            String[] titulo =new String[] {"ID_Compra","Constructora","Banco_Vinculado"};
+            view.mostrar.setColumnIdentifiers(titulo);
+            view.mostrar.setNumRows(0);
+            
+            List<Respuesta3> Listado;
+            try {
+                Listado = model.con3();
+                Listado.forEach(consulta -> {
+                    view.mostrar.addRow(new Object[] {
+                        consulta.getId_compra(),
+                        consulta.getConstructora(),
+                        consulta.getBanco_vinculado() 
+                    });
+                });
+            } 
+            catch (SQLException ex) {
+                JOptionPane.showMessageDialog(null, "Error en la consulta" + ex);
+            }
+
+        }
+        
+    }
+   
+}
+
+
+
+package model.DAO;
+
+import java.util.List;
+import model.vo.Respuesta1;
+import model.vo.Respuesta2;
+import model.vo.Respuesta3;
+import java.sql.*;
+import java.util.ArrayList;
+import util.Conexion;
+
+public class Modelo {
+    public String respuesta;
+    
+    public List<Respuesta1> con1() throws SQLException {
+        
+        Connection conexion = Conexion.getConnection();
+        Statement consulta = conexion.createStatement();
+        ResultSet rs = consulta.executeQuery("SELECT ID_Lider, Nombre, Primer_Apellido, Ciudad_Residencia FROM Lider ORDER BY Ciudad_Residencia ASC");
+        
+        ArrayList<Respuesta1> respuesta = new ArrayList<>();
+        
+        while (rs.next()){
+            Respuesta1 res1 = new Respuesta1();
+            res1.setId_lider(rs.getInt("ID_Lider"));
+            res1.setPrimer_apellido(rs.getString("Primer_Apellido"));
+            res1.setNombre(rs.getString("Nombre"));
+            res1.setCiudad_residencia(rs.getString("Ciudad_Residencia"));
+            respuesta.add(res1);
+        }
+        return respuesta;
+    }
+    
+    public List<Respuesta2> con2() throws SQLException {
+        
+        Connection conexion = Conexion.getConnection();
+        Statement consulta = conexion.createStatement();
+        ResultSet rs = consulta.executeQuery("SELECT ID_Proyecto,Constructora,Numero_Habitaciones,Ciudad FROM Proyecto WHERE Clasificacion = 'Casa Campestre' AND Ciudad IN ('Barranquilla', 'Santa Marta', 'Cartagena')");
+        
+        ArrayList<Respuesta2> respuesta = new ArrayList<>();
+        
+        while (rs.next()){
+            Respuesta2 res2 = new Respuesta2();
+            res2.setId_proyecto(rs.getInt("ID_Proyecto"));
+            res2.setConstructora(rs.getString("Constructora"));
+            res2.setNumero_habitaciones(rs.getInt("Numero_Habitaciones"));
+            res2.setCiudad(rs.getString("Ciudad"));
+            respuesta.add(res2);
+        }
+        return respuesta;
+    }
+    
+    public List<Respuesta3> con3() throws SQLException {
+        
+        Connection conexion = Conexion.getConnection();
+        Statement consulta = conexion.createStatement();
+        ResultSet rs = consulta.executeQuery("SELECT Y.ID_Compra, X.Constructora, X.Banco_Vinculado from Proyecto X JOIN Compra Y ON X.ID_Proyecto = Y.ID_Proyecto WHERE Y.Proveedor = 'Homecenter' AND X.Ciudad = 'Salento'");
+        
+        ArrayList<Respuesta3> respuesta = new ArrayList<>();
+        
+        while(rs.next()){
+            Respuesta3 res3 = new Respuesta3();
+            res3.setId_compra(rs.getInt("ID_Compra"));
+            res3.setConstructora(rs.getString("Constructora"));
+            res3.setBanco_vinculado(rs.getString("Banco_Vinculado"));
+            respuesta.add(res3);
+        }
+        return respuesta;
+    }
+
+}
+
+
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package model.vo;
+
+/**
+ *
+ * @author DIDIER GUERRERO
+ */
+public class Respuesta1 {
+    private Integer id_lider;
+    private String nombre;
+    private String primer_apellido;
+    private String ciudad_residencia;
+
+    public Respuesta1() {
+    }
+
+    public Respuesta1(Integer id_lider, String nombre, String primer_apellido, String ciudad_residencia) {
+        this.id_lider = id_lider;
+        this.nombre = nombre;
+        this.primer_apellido = primer_apellido;
+        this.ciudad_residencia = ciudad_residencia;
+    }
+
+    public Integer getId_lider() {
+        return id_lider;
+    }
+
+    public void setId_lider(Integer id_lider) {
+        this.id_lider = id_lider;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getPrimer_apellido() {
+        return primer_apellido;
+    }
+
+    public void setPrimer_apellido(String primer_apellido) {
+        this.primer_apellido = primer_apellido;
+    }
+
+    public String getCiudad_residencia() {
+        return ciudad_residencia;
+    }
+
+    public void setCiudad_residencia(String ciudad_residencia) {
+        this.ciudad_residencia = ciudad_residencia;
+    }
+    
+    
+}
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package model.vo;
+
+/**
+ *
+ * @author DIDIER GUERRERO
+ */
+public class Respuesta2 {
+    private Integer id_proyecto;
+    private String constructora;
+    private Integer numero_habitaciones;
+    private String ciudad;
+
+    public Respuesta2() {
+    }
+
+    public Respuesta2(Integer id_proyecto, String constructora, Integer numero_habitaciones, String ciudad) {
+        this.id_proyecto = id_proyecto;
+        this.constructora = constructora;
+        this.numero_habitaciones = numero_habitaciones;
+        this.ciudad = ciudad;
+    }
+
+    public Integer getId_proyecto() {
+        return id_proyecto;
+    }
+
+    public void setId_proyecto(Integer id_proyecto) {
+        this.id_proyecto = id_proyecto;
+    }
+
+    public String getConstructora() {
+        return constructora;
+    }
+
+    public void setConstructora(String constructora) {
+        this.constructora = constructora;
+    }
+
+    public Integer getNumero_habitaciones() {
+        return numero_habitaciones;
+    }
+
+    public void setNumero_habitaciones(Integer numero_habitaciones) {
+        this.numero_habitaciones = numero_habitaciones;
+    }
+
+    public String getCiudad() {
+        return ciudad;
+    }
+
+    public void setCiudad(String ciudad) {
+        this.ciudad = ciudad;
+    }
+    
+    
+}
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package model.vo;
+
+/**
+ *
+ * @author DIDIER GUERRERO
+ */
+public class Respuesta3 {
+    private Integer id_compra;
+    private String constructora;
+    private String banco_vinculado;
+
+    public Respuesta3() {
+    }
+
+    public Respuesta3(Integer id_compra, String constructora, String banco_vinculado) {
+        this.id_compra = id_compra;
+        this.constructora = constructora;
+        this.banco_vinculado = banco_vinculado;
+    }
+
+    public Integer getId_compra() {
+        return id_compra;
+    }
+
+    public void setId_compra(Integer id_compra) {
+        this.id_compra = id_compra;
+    }
+
+    public String getConstructora() {
+        return constructora;
+    }
+
+    public void setConstructora(String constructora) {
+        this.constructora = constructora;
+    }
+
+    public String getBanco_vinculado() {
+        return banco_vinculado;
+    }
+
+    public void setBanco_vinculado(String banco_vinculado) {
+        this.banco_vinculado = banco_vinculado;
+    }
+    
+    
+}
+
+package reto5;
+
+import controller.Controlador;
+import model.DAO.Modelo;
+import view.Vista;
+
+public class Reto5 {
+
+    public static void main(String[] args) {
+        Modelo model = new Modelo();
+        Vista vista = new Vista();
+        
+        Controlador controller = new Controlador(vista,model);
+        controller.iniciar();
+        vista.setVisible(true);
+    }
+    
+}
+
+
+package util;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class Conexion {
+    public static Connection getConnection() throws SQLException {
+        
+        String url = "jdbc:sqlite:ProyectosConstruccion.db";
+        DriverManager.registerDriver(new org.sqlite.JDBC());
+        return DriverManager.getConnection(url);
+    } 
+}
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
+ */
+package view;
+
+import java.awt.Graphics;
+import java.awt.Image;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
+import javax.swing.table.DefaultTableModel;
+
+/**
+ *
+ * @author DIDIER GUERRERO
+ */
+public class Vista extends javax.swing.JFrame {
+    public DefaultTableModel mostrar = new DefaultTableModel();
+    
+    
+    
+    public Vista() {
+        initComponents();
+        String[] titulo =new String[] {};
+        mostrar.setColumnIdentifiers(titulo);
+        jTable1.setModel(mostrar);
+    }
+    
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        btnInforme3 = new javax.swing.JButton();
+        btnInforme1 = new javax.swing.JButton();
+        btnInforme2 = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("RETO 5 - CICLO 2 UTP");
+        setBackground(new java.awt.Color(204, 255, 255));
+        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        setForeground(new java.awt.Color(204, 255, 204));
+        setResizable(false);
+
+        jPanel1.setBackground(new java.awt.Color(204, 204, 204));
+
+        jLabel1.setBackground(new java.awt.Color(102, 102, 102));
+        jLabel1.setFont(new java.awt.Font("Verdana", 0, 18)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(51, 51, 51));
+        jLabel1.setText("MISION TIC - RETO 5 - CICLO 2");
+
+        jLabel3.setBackground(new java.awt.Color(102, 102, 102));
+        jLabel3.setFont(new java.awt.Font("Verdana", 1, 12)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(51, 51, 51));
+        jLabel3.setText("TABLA CON LOS RESULTADOS DE LAS CONSULTAS SOLICITADAS");
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
+
+        btnInforme3.setBackground(new java.awt.Color(0, 153, 204));
+        btnInforme3.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        btnInforme3.setForeground(new java.awt.Color(255, 255, 255));
+        btnInforme3.setText("Informe 3 - Resultado");
+        btnInforme3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        btnInforme1.setBackground(new java.awt.Color(0, 153, 204));
+        btnInforme1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        btnInforme1.setForeground(new java.awt.Color(255, 255, 255));
+        btnInforme1.setText("Informe 1 - Resultado");
+        btnInforme1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        btnInforme2.setBackground(new java.awt.Color(0, 153, 204));
+        btnInforme2.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        btnInforme2.setForeground(new java.awt.Color(255, 255, 255));
+        btnInforme2.setText("Informe 2 - Resultado");
+        btnInforme2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/logo-scs-key11063741.png"))); // NOI18N
+
+        jLabel6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/Minvivienda2021_logo-min.png"))); // NOI18N
+        jLabel6.setText("jLabel6");
+
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel2.setText("Informe Lideres");
+
+        jLabel4.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel4.setText("Informe Proyectos");
+
+        jLabel7.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel7.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel7.setText("Informe Compras");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 510, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(45, 45, 45)
+                        .addComponent(jLabel5))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(188, 188, 188)
+                        .addComponent(jLabel3))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(252, 252, 252)
+                        .addComponent(jLabel1))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(92, 92, 92)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(btnInforme1, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(btnInforme2, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(27, 27, 27)
+                                .addComponent(btnInforme3, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(40, 40, 40)
+                                .addComponent(jLabel2)
+                                .addGap(101, 101, 101)
+                                .addComponent(jLabel4)
+                                .addGap(123, 123, 123)
+                                .addComponent(jLabel7))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(21, 21, 21)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 845, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(12, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, 95, Short.MAX_VALUE)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addGap(24, 24, 24)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(21, 21, 21)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel4))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnInforme3, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnInforme2, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnInforme1, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(29, 29, 29))
+        );
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        pack();
+    }// </editor-fold>                        
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(Vista.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(Vista.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(Vista.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(Vista.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new Vista().setVisible(true);
+                
+            }
+        });
+    }
+
+    // Variables declaration - do not modify                     
+    public javax.swing.JButton btnInforme1;
+    public javax.swing.JButton btnInforme2;
+    public javax.swing.JButton btnInforme3;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    public javax.swing.JTable jTable1;
+    // End of variables declaration                   
+
+
+    
+}
+
+
